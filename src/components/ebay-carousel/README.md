@@ -4,19 +4,26 @@
 
 ```marko
 <ebay-carousel>
-    <div>item 1</div>
-    <div>item 2</div>
+    <ebay-carousel-item>item 1</ebay-carousel-item>
+    <ebay-carousel-item>item 2</ebay-carousel-item>
+    <ebay-carousel-item>item 3</ebay-carousel-item>
+    <ebay-carousel-item>item 4</ebay-carousel-item>
+    <ebay-carousel-item>item 5</ebay-carousel-item>
 </ebay-carousel>
 ```
 
 ## Attributes
-Name | Type | Stateful | Description
---- | --- | --- | ---
-`class` | String | No | custom class
-`index` | String | Yes | zero-based starting position
-`type` | String | No | "continuous" (default) or "discrete"
-`aria-label-prev` | String | No | aria-label for previous control
-`aria-label-next` | String | No | aria-label for next control
+Name | Type  | Description
+--- | --- | ---
+`class` | String | custom class
+`type` | String | "continuous" (default) or "discrete"
+`aria-label-prev` | String | aria-label for previous control
+`aria-label-next` | String | aria-label for next control
+
+## Properties
+Name | Type | Description
+--- | --- | ---
+`index` | String | zero-based item position
 
 ## Events
 Event | Description

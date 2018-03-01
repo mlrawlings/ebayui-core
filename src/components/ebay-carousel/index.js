@@ -12,7 +12,7 @@ const constants = {
         discrete: 'discrete',
         continuous: 'continuous'
     },
-    margin: 8 // matches the css applied to each item
+    margin: 16 // matches the css applied to each item
 };
 const defaults = {
     index: 0,
@@ -48,7 +48,7 @@ function init() {
     this.setupItems();
     this.bindEventListeners();
     observer.observeRoot(this, ['index']);
-    this.triggerItemSizeCaching();
+    this.triggerItemWidthCaching();
     this.performSlide(this.state.index);
 }
 
@@ -60,13 +60,13 @@ function setupItems() {
     this.listEl = this.el.querySelector(`.${constants.classes.list}`);
     this.childrenEls = this.listEl.children;
     this.setState('totalItems', this.childrenEls.length);
-    this.updateContainerSize();
+    this.updateContainerWidth();
 }
 
 function bindEventListeners() {
     window.addEventListener('resize', throttle(() => {
-        this.updateContainerSize();
-        this.triggerItemSizeCaching(true);
+        this.updateContainerWidth();
+        this.triggerItemWidthCaching(true);
         this.performSlide(parseInt(this.state.index));
     }));
 }
@@ -140,7 +140,7 @@ function updateControls() {
 }
 
 /**
- * Calculate the number of cards to scroll from startIndex based on their sizes
+ * Calculate the number of cards to scroll from startIndex based on their widths
  * @param {Number} startIndex: Index position to calculate from
  * @param {Number} direction: 1 for forward, -1 for backward
  */
@@ -152,13 +152,13 @@ function calculateScrollOffset(startIndex, direction) {
         return increment;
     }
 
-    const containerSize = this.getContainerSize();
+    let containerWidth = this.getContainerWidth();
 
-    while (containerSize.width > 0) {
+    while (containerWidth > 0) {
         if (index > this.state.totalItems || index < 0) {
             break;
         }
-        containerSize.width = containerSize.width - this.getSingleItemSize(index).width;
+        containerWidth -= this.getSingleItemWidth(index);
         increment += 1;
         index += direction;
     }
@@ -193,103 +193,73 @@ function moveToIndex(index) {
         return;
     }
 
-    const coords = this.getCoordinates(index);
-    const offset = this.getOffset(coords, index, endIndex);
-    coords.x = coords.x || 0;
-    offset.x = offset.x || 0;
-    this.listEl.style.transform = `translateX(${(-1 * coords.x) + offset.x}px)`;
+    const widthBeforeIndex = this.getWidthBeforeIndex(index);
+    const offset = this.getOffset(widthBeforeIndex, index, endIndex);
+    this.listEl.style.transform = `translateX(${(-1 * widthBeforeIndex) + offset}px)`;
     emitAndFire(this, 'carousel-translate');
 }
 
 /**
  * Get the offset that the carousel needs to push forward by based on index
  */
-function getOffset({ x, y }, startIndex, endIndex) {
-    const offset = { x: 0, y: 0 };
-    const endCoords = this.getCoordinates(endIndex);
+function getOffset(widthBeforeIndex, startIndex, endIndex) {
+    let offset = 0;
+    const widthToEnd = this.getWidthBeforeIndex(endIndex);
 
-    if (endIndex > (this.state.totalItems) && (startIndex < this.state.totalItems)) {
-        const containerSize = this.containerSize;
-
-        offset.x = containerSize.width - (endCoords.x - x) + constants.margin;
-        offset.y = containerSize.height - y;
+    if (endIndex > this.state.totalItems && startIndex < this.state.totalItems) {
+        offset = this.containerWidth - (widthToEnd - widthBeforeIndex) + constants.margin;
     }
 
     return offset;
 }
 
 /**
- * Get the coordinates of a carousel item based on index
+ * Get the aggregate width of all items in the carousel until this index
  */
-function getCoordinates(index) {
-    const itemSize = this.getItemSizes(index);
+function getWidthBeforeIndex(index = 0) {
+    let width = 0;
 
-    if (!itemSize) {
-        return;
-    }
-
-    return {
-        x: itemSize.width,
-        y: 0
-    };
-}
-
-/**
- * Get the aggregate size of all items in the carousel until this index
- */
-function getItemSizes(index) {
-    const size = { width: 0, height: 0 };
-
-    if (!index || (index < 0)) {
-        return size;
-    }
     for (let i = 0; i < index; i++) {
-        const rect = this.getSingleItemSize(i);
-        const itemMargin = constants.margin;
-
-        size.width += rect.width + itemMargin;
-        size.height = rect.heigth || 0;
+        width += this.getSingleItemWidth(i) + constants.margin;
     }
-    return size;
+
+    return width;
 }
 
 /**
  * Trigger a one time caching of all elements within the carousel
  * @params {Boolean} forceUpdate: Updates the cache with new values
  */
-function triggerItemSizeCaching(forceUpdate) {
+function triggerItemWidthCaching(forceUpdate) {
     for (let i = 0; i < this.state.totalItems; i++) {
-        this.getSingleItemSize(i, forceUpdate);
+        this.getSingleItemWidth(i, forceUpdate);
     }
 }
 
 /**
- * Get single item size based on index
+ * Get single item width based on index
  * @params {Number} index: Index of the carousel item
  * @params {Boolean} forceUpdate: Trigger fetch update of cache values
  */
-function getSingleItemSize(index, forceUpdate) {
+function getSingleItemWidth(index, forceUpdate) {
     if (this.itemCache && this.itemCache[index] && !forceUpdate) {
         return this.itemCache[index];
     } else if (index < this.state.totalItems && index >= 0) {
         const rect = this.childrenEls[index].getBoundingClientRect();
-        this.itemCache[index] = { width: rect.width || 0, height: rect.height || 0 };
+        this.itemCache[index] = rect.width || 0;
         return this.itemCache[index];
     }
 
-    return { width: 0, height: 0 };
+    return 0;
 }
 
-function updateContainerSize() {
-    this.containerSize = this.getContainerSize();
+function updateContainerWidth() {
+    this.containerWidth = this.getContainerWidth();
 }
 
-function getContainerSize() {
+function getContainerWidth() {
     const rect = this.listEl.getBoundingClientRect();
-    return {
-        width: rect.width || 0,
-        height: rect.width || 0
-    };
+    return rect.width || 0;
 }
 
 module.exports = require('marko-widgets').defineComponent({
@@ -307,12 +277,11 @@ module.exports = require('marko-widgets').defineComponent({
     calculateScrollOffset,
     moveToIndex,
     getOffset,
-    getCoordinates,
-    getItemSizes,
-    triggerItemSizeCaching,
-    getSingleItemSize,
-    updateContainerSize,
-    getContainerSize
+    getWidthBeforeIndex,
+    triggerItemWidthCaching,
+    getSingleItemWidth,
+    updateContainerWidth,
+    getContainerWidth
 });
 
 module.exports.privates = { constants, defaults };

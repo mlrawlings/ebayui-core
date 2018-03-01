@@ -48,7 +48,7 @@ describe('given the carousel has non-default input', () => {
     });
 });
 
-describe('given the carousel with body starts in the default state', () => {
+describe('given the carousel starts in the default state', () => {
     const input = { items: mock.items };
     let widget;
     let root;
@@ -102,7 +102,55 @@ describe('given the carousel with body starts in the default state', () => {
         });
 
         it('then it applies a translation', () => {
-            expect(list.style.transform).to.equal('translateX(-448px)');
+            expect(list.style.transform).to.equal('translateX(-496px)');
+        });
+    });
+});
+
+describe('given a continuous carousel has next button clicked', () => {
+    const input = { items: mock.items };
+    let widget;
+    let root;
+    let list;
+    let nextButton;
+    let prevButton;
+
+    beforeEach((done) => {
+        widget = renderer.renderSync(input).appendTo(document.body).getWidget();
+        root = document.querySelector('.carousel');
+        list = root.querySelector('.carousel__list');
+        nextButton = root.querySelector('.carousel__control--next');
+        prevButton = root.querySelector('.carousel__control--prev');
+        testUtils.triggerEvent(nextButton, 'click');
+        setTimeout(() => {
+            expect(list.style.transform).to.equal('translateX(-496px)');
+            done();
+        });
+    });
+    afterEach(() => widget.destroy());
+
+    describe('when the previous button is clicked', () => {
+        let prevSpy;
+        let translateSpy;
+        beforeEach((done) => {
+            prevSpy = sinon.spy();
+            translateSpy = sinon.spy();
+            widget.on('carousel-prev', prevSpy);
+            widget.on('carousel-translate', translateSpy);
+            testUtils.triggerEvent(prevButton, 'click');
+            setTimeout(done);
+        });
+
+        it('then it emits the marko prev event', () => {
+            expect(prevSpy.calledOnce).to.equal(true);
+        });
+
+        it('then it emits the marko translate event', () => {
+            expect(translateSpy.calledOnce).to.equal(true);
+        });
+
+        it('then it applies a translation back to 0', () => {
+            expect(list.style.transform).to.equal('translateX(0px)');
         });
     });
 });

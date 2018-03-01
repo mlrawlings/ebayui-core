@@ -61,3 +61,20 @@ describe('when the ebay-menu-item tag is transformed', () => {
         expect(outputTemplate).to.deep.equal(tagString.after);
     });
 });
+
+describe('when the ebay-carousel-item tag is transformed', () => {
+    let tagString;
+    let outputTemplate;
+
+    beforeEach(() => {
+        const rootTag = 'ebay-carousel';
+        const nestedTag = 'item';
+        const templatePath = `../../../components/${rootTag}/template.marko`;
+        tagString = getTagString(rootTag, nestedTag);
+        outputTemplate = getTransformedTemplate(tagString.before, templatePath);
+    });
+
+    test('transforms the body contents of a carousel', () => {
+        expect(outputTemplate).to.deep.equal(tagString.after);
+    });
+});
