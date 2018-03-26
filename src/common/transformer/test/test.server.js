@@ -27,6 +27,11 @@ function getTransformedTemplate(srcString, templatePath) {
     );
 
     transformer(templateAST.body.array[0], context);
+
+    console.log('**** templateAST ***********************************************');
+    console.log(JSON.stringify(templateAST, null, 4));
+    console.log('***************************************************');
+
     return prettyPrint(templateAST).replace(/\>\s*</g, '><').trim();
 }
 
@@ -37,7 +42,14 @@ function getTagString(rootTag, nestedTag) {
     };
 }
 
-describe('when the ebay-select-option tag is tranformed', () => {
+function getNestedTagString(rootTag, nestedTag) {
+    return {
+        'before': `<${rootTag}><if(true)><${rootTag}-${nestedTag}/></if></${rootTag}>`,
+        'after': `<${rootTag}><if(true)><${rootTag}:${nestedTag}/></if></${rootTag}>`
+    };
+}
+
+describe.only('when the ebay-select-option tag is tranformed', () => {
     let tagString;
     let outputTemplate;
 
@@ -45,8 +57,11 @@ describe('when the ebay-select-option tag is tranformed', () => {
         const rootTag = 'ebay-select';
         const nestedTag = 'option';
         const templatePath = `../../../components/${rootTag}/template.marko`;
-        tagString = getTagString(rootTag, nestedTag);
+        tagString = getNestedTagString(rootTag, nestedTag);
         outputTemplate = getTransformedTemplate(tagString.before, templatePath);
+        console.log('**** outputTemplate ***********************************************');
+        console.log(outputTemplate);
+        console.log('***************************************************');
     });
 
     test('transforms the body contents of a listbox', () => {
