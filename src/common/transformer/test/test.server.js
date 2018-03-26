@@ -11,8 +11,9 @@ try {
     Builder = require('marko/compiler/Builder');
 } catch (e) {
     // v4 paths
-    CompileContext = require('marko/dist/compiler/CompileContext');
-    Builder = require('marko/dist/compiler/Builder');
+    const target = require('marko/env').isDebug ? 'src' : 'dist';
+    CompileContext = require(`marko/${target}/compiler/CompileContext`);
+    Builder = require(`marko/${target}/compiler/Builder`);
 }
 
 function getTransformedTemplate(srcString, templatePath) {
